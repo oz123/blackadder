@@ -49,7 +49,7 @@ def randomly_kill_pods(pods, tolerance, eagerness):
     for p in pods:
         if random.randint(0, 100) < eagerness:
             p.delete()
-            logger.info(f"Deleted {p.namespace}/{p.name}")
+            logger.debug(f"Deleted {p.namespace}/{p.name}")
 
 
 def randomly_scale_deployments(deployments, eagerness):
@@ -60,17 +60,17 @@ def randomly_scale_deployments(deployments, eagerness):
                     if d.replicas < 128:
                         d.replicas = min(d.replicas * 2)
                     d.update()
-                    logger.info(f"scaled {d.namespace}/{d.name} to {d.replicas}")
+                    logger.debug(f"scaled {d.namespace}/{d.name} to {d.replicas}")
                     break
                 except (requests.exceptions.HTTPError, pykube.exceptions.HTTPError):
-                    logger.info(f"error scaling {d.namespace}/{d.name} to {d.replicas}")
+                    logger.debug(f"error scaling {d.namespace}/{d.name} to {d.replicas}")
                     d.reload()
                     continue
 
 
 def randomly_write_configmaps(configmaps, eagerness):
     for cm in configmaps:
-        logger.info(f"Checking {cm.namespace}/{cm.name}")
+        logger.debug(f"Checking {cm.namespace}/{cm.name}")
         if cm.obj.get("immutable"):
             continue
 
@@ -81,22 +81,29 @@ def randomly_write_configmaps(configmaps, eagerness):
             logger.info(f"Lorem Impsum in {cm.namespace}/{cm.name}")
 
 
-while True:
-    pods = api.list_objects(Pod, exclude_namespaces)
-    deployments = api.list_objects(Deployment, exclude_namespaces)
-    configmaps = api.list_objects(ConfigMap, exclude_namespaces)
+def main():
+    while True:
+        pods = api.list_objects(Pod, exclude_namespaces)
+        deployments = api.list_objects(Deployment, exclude_namespaces)
+        configmaps = api.list_objects(ConfigMap, exclude_namespaces)
 
-    if agent.config.tantrumMode:
-        randomly_kill_pods(pods,
-                           agent.config.podTolerance,
-                           agent.config.eagerness)
+        if agent.config.tantrumMode:
+            randomly_kill_pods(pods,
+                               agent.config.podTolerance,
+                               agent.config.eagerness)
 
-    if agent.config.cancerMode:
-        randomly_scale_deployments(deployments,
-                                   agent.config.eagerness)
+        if agent.config.cancerMode:
+            randomly_scale_deployments(deployments,
+                                       agent.config.eagerness)
 
-    if agent.config.ipsumMode:
-        randomly_write_configmaps(configmaps,
-                                  agent.config.eagerness)
+        if agent.config.ipsumMode:
+            randomly_write_configmaps(configmaps,
+                                      agent.config.eagerness)
 
-    time.sleep(agent.config.pauseDuration)
+        time.sleep(agent.config.pauseDuration)
+
+
+if __name__ == "__main__":
+    logger.debug("This is the blackadder version 0.1")
+    logger.debug("Ready to start a havoc in your cluster")
+    main()
