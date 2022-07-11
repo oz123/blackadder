@@ -1,5 +1,6 @@
 import logging
 import random
+import sys
 import time
 
 import lorem
@@ -49,7 +50,9 @@ def randomly_kill_pods(pods, tolerance, eagerness):
     for p in pods:
         if random.randint(0, 100) < eagerness:
             p.delete()
-            logger.debug(f"Deleted {p.namespace}/{p.name}")
+            print(f"Deleted {p.namespace}/{p.name}",
+                  flush=True,
+                  file=sys.stderr)
 
 
 def randomly_scale_deployments(deployments, eagerness):
@@ -60,17 +63,22 @@ def randomly_scale_deployments(deployments, eagerness):
                     if d.replicas < 128:
                         d.replicas = min(d.replicas * 2)
                     d.update()
-                    logger.debug(f"scaled {d.namespace}/{d.name} to {d.replicas}")
+                    print(f"scaled {d.namespace}/{d.name} to {d.replicas}",
+                          flush=True,
+                          file=sys.stderr)
                     break
                 except (requests.exceptions.HTTPError, pykube.exceptions.HTTPError):
-                    logger.debug(f"error scaling {d.namespace}/{d.name} to {d.replicas}")
+                    print(
+                        f"error scaling {d.namespace}/{d.name} to {d.replicas}",
+                        flush=True,
+                        file=sys.stderr)
                     d.reload()
                     continue
 
 
 def randomly_write_configmaps(configmaps, eagerness):
     for cm in configmaps:
-        logger.debug(f"Checking {cm.namespace}/{cm.name}")
+        print(f"Checking {cm.namespace}/{cm.name}")
         if cm.obj.get("immutable"):
             continue
 
@@ -78,7 +86,9 @@ def randomly_write_configmaps(configmaps, eagerness):
             for k, v in cm.obj["data"].items():
                 cm.obj["data"][k] = lorem.paragraph()
 
-            logger.info(f"Lorem Impsum in {cm.namespace}/{cm.name}")
+            print(f"Lorem Impsum in {cm.namespace}/{cm.name}",
+                  flush=True,
+                  file=sys.stderr)
 
 
 def main():
@@ -104,6 +114,6 @@ def main():
 
 
 if __name__ == "__main__":
-    logger.debug("This is the blackadder version 0.1")
-    logger.debug("Ready to start a havoc in your cluster")
+    print("This is the blackadder version 0.1", flush=True, file=sys.stderr)
+    print("Ready to start a havoc in your cluster", flush=True, file=sys.stderr)
     main()
