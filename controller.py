@@ -11,7 +11,7 @@ import requests
 
 from pykube import Pod, Deployment, ConfigMap
 
-logger = logging.getLogger("chaos-controller")
+#logger = logging.getLogger("chaos-controller")
 
 
 def list_objects(self, k8s_obj, exclude_namespaces):
@@ -50,9 +50,7 @@ def randomly_kill_pods(pods, tolerance, eagerness):
     for p in pods:
         if random.randint(0, 100) < eagerness:
             p.delete()
-            print(f"Deleted {p.namespace}/{p.name}",
-                  flush=True,
-                  file=sys.stderr)
+            print(f"Deleted {p.namespace}/{p.name}",)
 
 
 def randomly_scale_deployments(deployments, eagerness):
@@ -63,15 +61,11 @@ def randomly_scale_deployments(deployments, eagerness):
                     if d.replicas < 128:
                         d.replicas = min(d.replicas * 2)
                     d.update()
-                    print(f"scaled {d.namespace}/{d.name} to {d.replicas}",
-                          flush=True,
-                          file=sys.stderr)
+                    print(f"scaled {d.namespace}/{d.name} to {d.replicas}",)
                     break
                 except (requests.exceptions.HTTPError, pykube.exceptions.HTTPError):
                     print(
-                        f"error scaling {d.namespace}/{d.name} to {d.replicas}",
-                        flush=True,
-                        file=sys.stderr)
+                        f"error scaling {d.namespace}/{d.name} to {d.replicas}",)
                     d.reload()
                     continue
 
@@ -86,9 +80,7 @@ def randomly_write_configmaps(configmaps, eagerness):
             for k, v in cm.obj["data"].items():
                 cm.obj["data"][k] = lorem.paragraph()
 
-            print(f"Lorem Impsum in {cm.namespace}/{cm.name}",
-                  flush=True,
-                  file=sys.stderr)
+            print(f"Lorem Impsum in {cm.namespace}/{cm.name}",)
 
 
 def main():
@@ -114,6 +106,6 @@ def main():
 
 
 if __name__ == "__main__":
-    print("This is the blackadder version 0.1", flush=True, file=sys.stderr)
-    print("Ready to start a havoc in your cluster", flush=True, file=sys.stderr)
+    print("This is the blackadder version 0.1")
+    print("Ready to start a havoc in your cluster")
     main()
